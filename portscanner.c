@@ -22,8 +22,11 @@ typedef struct{
 
 int port_scan(struct addrinfo *final, int port){
     struct timeval tv;
-    struct addrinfo hints;
     struct sockaddr_storage local_addr; 
+    char buffer[1024];
+    const char *request = "HEAD / HTTP/1.0\r\n\r\n";
+
+    buffer[0] = '\0';
 
     memcpy(&local_addr, final->ai_addr, final->ai_addrlen);
 
@@ -34,23 +37,61 @@ int port_scan(struct addrinfo *final, int port){
         ((struct sockaddr_in6 *)&local_addr)->sin6_port = htons(port);
 
     int sock = socket(final->ai_family, final->ai_socktype, final->ai_protocol);
-    
+
     if(sock<0){
         perror("sock");
         return 1;
     }
 
-
+    
     tv.tv_sec = 0;
-    tv.tv_usec= 300000;
+    tv.tv_usec= 500000;
 
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
     setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 
     int result = connect(sock, (struct sockaddr *)&local_addr, final->ai_addrlen);
 
+    if(result == 0){   
+        if(port == 80 || port == 8080){
+            int sreq = send(sock, request, strlen(request), 0);
+
+            if (sreq == -1){
+                printf("Error sending data");
+                return 1;
+            }
+
+            int n = recv(sock, buffer, sizeof(buffer) - 1, 0);
+
+            if(n > 0){
+                buffer[n] = '\0';
+                if (strstr(buffer, "HTTP") != NULL) {
+                    strcpy(buffer, "HTTP");
+                }
+            }
+        }
+        else{
+
+            int recev = recv(sock, buffer, sizeof(buffer) - 1, 0);
+
+            if(recev > 0){
+                buffer[recev] = '\0';
+                if (strstr(buffer, "FTP") != NULL) {
+                    strcpy(buffer, "ftp");
+                }
+                if (strstr(buffer, "SMTP") != NULL) {
+                    strcpy(buffer, "smtp");
+                }
+                if (strstr(buffer, "SSH") != NULL) {
+                    strcpy(buffer, "ssh");
+                }
+                
+            }
+        }
+    }
+
     if(result==0){ 	
-	    printf("Port is open at: %d\n", port);
+	    printf("Port open at : %d/%s\n", port, buffer);
 	    }
     close(sock);
 
@@ -101,7 +142,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    if (start_port < 1 | end_port > 65535){
+    if (start_port < 1 || end_port > 65535 || start_port > end_port){
         printf("Invalid PORT");
         return 1;
     }
