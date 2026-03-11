@@ -63,22 +63,6 @@ This scans ports **1–1000** on `scanme.nmap.org` using **50 threads**.
 
 ---
 
-# Project Structure
-
-```
-simpleportscanner/
-│
-├── c_scanner/
-│   └── scanner.c
-│
-├── python_scanner/
-│   └── scanner.py
-│
-└── README.md
-```
-
----
-
 # Disclaimer
 
 This tool is intended **for educational purposes only**.
