@@ -1,6 +1,6 @@
-# Simple Port Scanner
+# Multithreaded Port Scanner
 
-This repository contains two basic TCP port scanners:
+This repository contains two TCP port scanners:
 
 * **Python Port Scanner** – GUI-based and simple to use
 * **C Port Scanner** – Multithreaded command-line scanner for faster scanning
